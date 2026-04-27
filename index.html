@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AANARCHIST OBEDIENCE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20,20,19,0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+        }
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 12px;
+            margin-bottom: 28px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+        .control-section { margin-bottom: 28px; }
+        .control-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-bottom: 10px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217,119,87,0.1);
+            background: white;
+        }
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .control-group { margin-bottom: 16px; }
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 6px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #c86641;
+        }
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--anthropic-mid-gray);
+            min-width: 52px;
+            text-align: right;
+        }
+        .key-param label {
+            color: var(--anthropic-orange);
+            font-weight: 600;
+        }
+        .key-param .slider-container input[type="range"] {
+            background: linear-gradient(to right, #e8e6dc 0%, #e8e6dc 100%);
+        }
+        .key-param .slider-container input[type="range"]::-webkit-slider-thumb {
+            background: var(--anthropic-dark);
+            width: 16px;
+            height: 16px;
+        }
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
+        }
+        .button:hover { background: #c86641; transform: translateY(-1px); }
+        .button:active { transform: translateY(0); }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bb8; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #6b7b52; }
+        .button.dark { background: var(--anthropic-dark); }
+        .button.dark:hover { background: #2a2a28; }
+        .button-row { display: flex; gap: 8px; }
+        .button-row .button { flex: 1; }
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+        #canvas-container {
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(20,20,19,0.25);
+        }
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            font-size: 14px;
+            color: var(--anthropic-mid-gray);
+            font-style: italic;
+        }
+        .param-hint {
+            font-size: 10px;
+            color: var(--anthropic-mid-gray);
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid var(--anthropic-light-gray);
+            margin: 4px 0 16px 0;
+        }
+        @media (max-width: 700px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h1>AANARCHIST OBEDIENCE</h1>
+        <div class="subtitle">Emergent Submission — particles that disobey everything, obeying something deeper</div>
+
+        <!-- SEED -->
+        <div class="control-section">
+            <h3>Seed</h3>
+            <input type="number" id="seed-input" class="seed-input" value="31415" onchange="updateSeed()">
+            <div class="seed-controls">
+                <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                <button class="button secondary" onclick="nextSeed()">Next →</button>
+            </div>
+            <button class="button tertiary" onclick="randomSeedAndUpdate()">↻ Random</button>
+        </div>
+
+        <!-- KEY PARAMETER: OBEDIENCE RATIO -->
+        <div class="control-section">
+            <h3>The Paradox</h3>
+            <div class="control-group key-param">
+                <label>Obedience Ratio</label>
+                <div class="slider-container">
+                    <input type="range" id="obedienceRatio" min="0" max="1" step="0.01" value="0.68"
+                           oninput="updateParam('obedienceRatio', this.value)">
+                    <span class="value-display" id="obedienceRatio-value">0.68</span>
+                </div>
+                <div class="param-hint">0 = pure chaos · 1 = pure crystalline order</div>
+            </div>
+        </div>
+
+        <!-- PARAMETERS -->
+        <div class="control-section">
+            <h3>Parameters</h3>
+
+            <div class="control-group">
+                <label>Particle Count</label>
+                <div class="slider-container">
+                    <input type="range" id="particleCount" min="500" max="6000" step="250" value="3500"
+                           oninput="updateParam('particleCount', this.value)">
+                    <span class="value-display" id="particleCount-value">3500</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Velocity</label>
+                <div class="slider-container">
+                    <input type="range" id="speed" min="0.5" max="4.0" step="0.1" value="2.2"
+                           oninput="updateParam('speed', this.value)">
+                    <span class="value-display" id="speed-value">2.2</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Chaos Scale</label>
+                <div class="slider-container">
+                    <input type="range" id="noiseScale" min="0.001" max="0.015" step="0.001" value="0.004"
+                           oninput="updateParam('noiseScale', this.value)">
+                    <span class="value-display" id="noiseScale-value">0.004</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Vortex Cell Size</label>
+                <div class="slider-container">
+                    <input type="range" id="cellSize" min="80" max="350" step="10" value="160"
+                           oninput="updateParam('cellSize', this.value)">
+                    <span class="value-display" id="cellSize-value">160</span>
+                </div>
+                <div class="param-hint">smaller = more, denser vortices</div>
+            </div>
+
+            <div class="control-group">
+                <label>Trail Persistence</label>
+                <div class="slider-container">
+                    <input type="range" id="trailFade" min="2" max="30" step="1" value="7"
+                           oninput="updateParam('trailFade', this.value)">
+                    <span class="value-display" id="trailFade-value">7</span>
+                </div>
+                <div class="param-hint">lower = longer, ghostlier trails</div>
+            </div>
+
+            <div class="control-group">
+                <label>Palette Hue Shift</label>
+                <div class="slider-container">
+                    <input type="range" id="hueShift" min="0" max="360" step="5" value="0"
+                           oninput="updateParam('hueShift', this.value)">
+                    <span class="value-display" id="hueShift-value">0</span>
+                </div>
+                <div class="param-hint">rotate the entire color spectrum</div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="control-section">
+            <h3>Actions</h3>
+            <div class="button-row" style="margin-bottom:8px;">
+                <button class="button" onclick="resetParameters()">Reset</button>
+                <button class="button dark" onclick="downloadPNG()">↓ PNG</button>
+            </div>
+        </div>
+
+        <div style="color: var(--anthropic-mid-gray); font-size: 10px; line-height:1.5; margin-top:8px;">
+            Particles obey nothing but local noise. Collectively, they reveal a vortex lattice they cannot see. Every seed is a different crystallization of the same paradox.
+        </div>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas-area">
+        <div id="canvas-container">
+            <div class="loading">Initializing the paradox…</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// AANARCHIST OBEDIENCE — Emergent Submission
+// Movement: Involuntary Crystallization
+//
+// Particles follow local Perlin chaos. Globally, an alternating vortex
+// lattice (clockwise/counter-clockwise cells like interlocking gears)
+// exerts invisible rotational force. The Obedience Ratio blends these
+// two fields. At the threshold, corridors appear between vortex cells:
+// rivers of order between galaxies of chaos.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let params = {
+    seed:          31415,
+    particleCount: 3500,
+    speed:         2.2,
+    noiseScale:    0.004,
+    obedienceRatio:0.68,
+    cellSize:      160,
+    trailFade:     7,
+    hueShift:      0,
+};
+
+let defaultParams = { ...params };
+
+// Precomputed flow field
+let fieldVx, fieldVy;
+let fieldCols, fieldRows;
+const FIELD_SCALE = 10; // sample every 10px — fine enough for smooth interpolation
+
+// Particle array — flat typed-ish objects for performance
+let particles = [];
+
+let p5Instance;
+
+// ── P5.JS SKETCH ─────────────────────────────────────────────────────────────
+
+new p5(function(p) {
+    p5Instance = p;
+
+    p.setup = function() {
+        let canvas = p.createCanvas(1200, 1200);
+        canvas.parent('canvas-container');
+        p.colorMode(p.HSB, 360, 100, 100, 100);
+        initializeSystem();
+        document.querySelector('.loading').style.display = 'none';
+    };
+
+    p.draw = function() {
+        // ── Trail fade overlay ──────────────────────────────────────────
+        p.colorMode(p.RGB);
+        p.noStroke();
+        p.fill(10, 7, 5, params.trailFade);
+        p.rect(0, 0, p.width, p.height);
+        p.colorMode(p.HSB, 360, 100, 100, 100);
+
+        // ── Update & draw particles ─────────────────────────────────────
+        p.noStroke();
+        for (let i = 0; i < particles.length; i++) {
+            let pt = particles[i];
+
+            // Sample the precomputed field (bilinear)
+            let vel = sampleField(pt.x, pt.y);
+
+            // Apply scaled velocity
+            pt.x += vel.vx * params.speed;
+            pt.y += vel.vy * params.speed;
+            pt.life--;
+
+            // Respawn if out of bounds or dead
+            if (pt.x < -8 || pt.x > p.width + 8 ||
+                pt.y < -8 || pt.y > p.height + 8 ||
+                pt.life <= 0) {
+                respawnParticle(pt);
+                continue;
+            }
+
+            // Color encoding
+            let speed2 = vel.vx * vel.vx + vel.vy * vel.vy;
+            let spd = Math.sqrt(speed2);
+
+            // Hue: base from spatial noise (set at spawn) + speed heat
+            let hue = (pt.baseHue + spd * 12) % 360;
+            let sat = p.map(spd, 0, 2.0, 45, 100);
+            let bri = p.map(spd, 0, 2.0, 50, 95);
+
+            // Fade in / out over particle lifetime
+            let age    = pt.maxLife - pt.life;
+            let fadeIn = pt.maxLife * 0.08;
+            let fadeOut= pt.maxLife * 0.12;
+            let alpha;
+            if (age < fadeIn) {
+                alpha = p.map(age, 0, fadeIn, 0, 70);
+            } else if (pt.life < fadeOut) {
+                alpha = p.map(pt.life, fadeOut, 0, 70, 0);
+            } else {
+                alpha = 70;
+            }
+
+            p.fill(hue, sat, bri, alpha);
+            p.ellipse(pt.x, pt.y, pt.size, pt.size);
+        }
+    };
+
+    // ── SYSTEM INITIALIZATION ─────────────────────────────────────────────
+
+    function initializeSystem() {
+        p.randomSeed(params.seed);
+        p.noiseSeed(params.seed);
+
+        // Precompute the blended flow field on a grid
+        fieldCols = Math.ceil(p.width  / FIELD_SCALE) + 3;
+        fieldRows = Math.ceil(p.height / FIELD_SCALE) + 3;
+        fieldVx   = new Float32Array(fieldCols * fieldRows);
+        fieldVy   = new Float32Array(fieldCols * fieldRows);
+
+        let cs = params.cellSize;
+        let sigma2 = (cs * 0.58) * (cs * 0.58) * 2;
+
+        for (let fc = 0; fc < fieldCols; fc++) {
+            for (let fr = 0; fr < fieldRows; fr++) {
+                let px = fc * FIELD_SCALE;
+                let py = fr * FIELD_SCALE;
+
+                // ── CHAOS: Perlin noise angle ──────────────────────────
+                let noiseAngle = p.noise(px * params.noiseScale, py * params.noiseScale) * p.TWO_PI * 4;
+                let chaosDX = Math.cos(noiseAngle);
+                let chaosDY = Math.sin(noiseAngle);
+
+                // ── ORDER: Alternating vortex lattice ─────────────────
+                let vx = 0, vy = 0, totalW = 0;
+                let col0 = Math.floor(px / cs);
+                let row0 = Math.floor(py / cs);
+
+                // Check this cell and 8 neighbors
+                for (let dc = -1; dc <= 1; dc++) {
+                    for (let dr = -1; dr <= 1; dr++) {
+                        let vc = col0 + dc;
+                        let vr = row0 + dr;
+
+                        // Vortex center
+                        let centX = (vc + 0.5) * cs;
+                        let centY = (vr + 0.5) * cs;
+
+                        // Alternating direction (interlocking gear pattern)
+                        let baseDir = ((vc + vr) % 2 === 0) ? 1 : -1;
+
+                        // Seed-based flip: ~12% of cells get an unexpected sign
+                        // This creates aesthetic irregularities — "defiant cells"
+                        let cellHash = (Math.abs(vc * 1337 + vr * 7919 + params.seed * 13) % 100);
+                        let dir = (cellHash < 12) ? -baseDir : baseDir;
+
+                        // Vector from vortex center to field point
+                        let dx = px - centX;
+                        let dy = py - centY;
+                        let dist2 = dx * dx + dy * dy;
+                        let dist  = Math.sqrt(dist2) + 0.001;
+
+                        // Tangential (perpendicular) vector — the spinning force
+                        let tx = (-dy / dist) * dir;
+                        let ty = ( dx / dist) * dir;
+
+                        // Gaussian weight: strongest at vortex core
+                        let w = Math.exp(-dist2 / sigma2);
+
+                        vx     += tx * w;
+                        vy     += ty * w;
+                        totalW += w;
+                    }
+                }
+
+                if (totalW > 1e-7) {
+                    vx /= totalW;
+                    vy /= totalW;
+                }
+
+                // ── BLEND: Obedience Ratio mixes chaos and order ───────
+                let o = params.obedienceRatio;
+                fieldVx[fc * fieldRows + fr] = chaosDX * (1 - o) + vx * o;
+                fieldVy[fc * fieldRows + fr] = chaosDY * (1 - o) + vy * o;
+            }
+        }
+
+        // ── SPAWN PARTICLES ────────────────────────────────────────────
+        particles = [];
+        for (let i = 0; i < params.particleCount; i++) {
+            let pt = {};
+            spawnParticle(pt, true);
+            particles.push(pt);
+        }
+
+        // ── DARK BACKGROUND ────────────────────────────────────────────
+        p.colorMode(p.RGB);
+        p.background(10, 7, 5);
+        p.colorMode(p.HSB, 360, 100, 100, 100);
+    }
+
+    // Expose for external calls
+    window.initializeSystem = initializeSystem;
+
+    // ── FIELD SAMPLING (bilinear interpolation) ───────────────────────────
+
+    function sampleField(px, py) {
+        let col = px / FIELD_SCALE;
+        let row = py / FIELD_SCALE;
+
+        let c0 = Math.floor(col); let r0 = Math.floor(row);
+        let c1 = c0 + 1;         let r1 = r0 + 1;
+
+        c0 = Math.max(0, Math.min(c0, fieldCols - 2));
+        r0 = Math.max(0, Math.min(r0, fieldRows - 2));
+        c1 = Math.max(0, Math.min(c1, fieldCols - 1));
+        r1 = Math.max(0, Math.min(r1, fieldRows - 1));
+
+        let tx = col - Math.floor(col);
+        let ty = row - Math.floor(row);
+
+        let i00 = c0 * fieldRows + r0;
+        let i10 = c1 * fieldRows + r0;
+        let i01 = c0 * fieldRows + r1;
+        let i11 = c1 * fieldRows + r1;
+
+        let vx = (fieldVx[i00] * (1-tx) + fieldVx[i10] * tx) * (1-ty)
+               + (fieldVx[i01] * (1-tx) + fieldVx[i11] * tx) * ty;
+        let vy = (fieldVy[i00] * (1-tx) + fieldVy[i10] * tx) * (1-ty)
+               + (fieldVy[i01] * (1-tx) + fieldVy[i11] * tx) * ty;
+
+        return { vx, vy };
+    }
+
+    // ── PARTICLE SPAWNING ─────────────────────────────────────────────────
+
+    function spawnParticle(pt, scatter) {
+        pt.x        = p.random(p.width);
+        pt.y        = p.random(p.height);
+        let life    = p.random(120, 700);
+        pt.life     = scatter ? p.random(life) : life;
+        pt.maxLife  = life;
+        pt.size     = p.random(1.0, 3.2);
+        // Base hue from spatial noise — coherent regions of color
+        pt.baseHue  = (p.noise(pt.x * 0.0018, pt.y * 0.0018) * 85 + params.hueShift) % 360;
+    }
+
+    function respawnParticle(pt) {
+        let life    = p.random(120, 700);
+        pt.x        = p.random(p.width);
+        pt.y        = p.random(p.height);
+        pt.life     = life;
+        pt.maxLife  = life;
+        pt.baseHue  = (p.noise(pt.x * 0.0018, pt.y * 0.0018) * 85 + params.hueShift) % 360;
+    }
+
+    window.respawnParticle = respawnParticle;
+    window.p5ref = p;
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UI CONTROL HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Params that require field recomputation:
+const FIELD_PARAMS  = new Set(['noiseScale', 'obedienceRatio', 'cellSize', 'particleCount', 'hueShift', 'seed']);
+// Params that only affect draw (no recompute needed):
+const VISUAL_PARAMS = new Set(['speed', 'trailFade']);
+
+function updateParam(paramName, value) {
+    let numVal = parseFloat(value);
+    params[paramName] = numVal;
+
+    // Format display
+    let decimals = { obedienceRatio: 2, noiseScale: 3, speed: 1 };
+    let disp = decimals[paramName] !== undefined
+        ? numVal.toFixed(decimals[paramName])
+        : Math.round(numVal);
+    document.getElementById(paramName + '-value').textContent = disp;
+
+    if (FIELD_PARAMS.has(paramName)) {
+        initializeSystem();
+    }
+    // VISUAL_PARAMS update automatically each draw() — no action needed
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SEED CONTROLS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function updateSeedDisplay() {
+    document.getElementById('seed-input').value = params.seed;
+}
+
+function updateSeed() {
+    let v = parseInt(document.getElementById('seed-input').value);
+    if (v && v > 0) {
+        params.seed = v;
+        initializeSystem();
+    } else {
+        updateSeedDisplay();
+    }
+}
+
+function previousSeed() {
+    params.seed = Math.max(1, params.seed - 1);
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+function nextSeed() {
+    params.seed++;
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+function randomSeedAndUpdate() {
+    params.seed = Math.floor(Math.random() * 999999) + 1;
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RESET & DOWNLOAD
+// ═══════════════════════════════════════════════════════════════════════════
+
+function resetParameters() {
+    params = { ...defaultParams };
+
+    document.getElementById('particleCount').value    = params.particleCount;
+    document.getElementById('particleCount-value').textContent = params.particleCount;
+    document.getElementById('speed').value            = params.speed;
+    document.getElementById('speed-value').textContent = params.speed.toFixed(1);
+    document.getElementById('noiseScale').value       = params.noiseScale;
+    document.getElementById('noiseScale-value').textContent = params.noiseScale.toFixed(3);
+    document.getElementById('obedienceRatio').value   = params.obedienceRatio;
+    document.getElementById('obedienceRatio-value').textContent = params.obedienceRatio.toFixed(2);
+    document.getElementById('cellSize').value         = params.cellSize;
+    document.getElementById('cellSize-value').textContent = params.cellSize;
+    document.getElementById('trailFade').value        = params.trailFade;
+    document.getElementById('trailFade-value').textContent = params.trailFade;
+    document.getElementById('hueShift').value         = params.hueShift;
+    document.getElementById('hueShift-value').textContent = params.hueShift;
+
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+function downloadPNG() {
+    if (window.p5ref) {
+        window.p5ref.saveCanvas('aanarchist-obedience-seed-' + params.seed, 'png');
+    }
+}
+
+window.addEventListener('load', function() {
+    updateSeedDisplay();
+});
+</script>
+</body>
+</html>
